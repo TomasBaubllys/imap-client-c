@@ -25,6 +25,9 @@
 #define ERR_NULL_RES_BUFFER "Response buffer cannot be NULL\n"
 #define ERR_RECEIVING_DATA "Error reading data: "
 
+#define SERVER_RES_OK "OK"
+#define SERVER_RES_BAD "BAD"
+
 // #define IMAP_TAG_DEBUG
 // #define IMAP_FULL_REQ_PRINT
 

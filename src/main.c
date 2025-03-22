@@ -1,7 +1,7 @@
 /*
 TODO :
-1) FIGURE OUT THE WINDOW SIZE WHEN THE CONNECTION IS MADE
-2) START A LOOP FOR BIGGER EMAILS FOR RECEIVE THEM
+1) Fix error handling
+2) Add -h function
 */
 
 #define _XOPEN_SOURCE 700 // what the fuck???
@@ -14,7 +14,15 @@ TODO :
 #include "../include/imap.h"
 
 #define SERVER_INFO_DEBUG
-#define INVALID_PROGRAM_ARG "Invalid argument count: must be ./imap <server>\n"
+#define INVALID_PROGRAM_ARG "Invalid argument count: must be ./imap <server> or ./imap -h(NOT IMPLEMENTED YET)\n"
+#define ERR_MEM_ALLOC "Memory allocation failed\n"
+#define ERR_SOCKET_CREATION "Socket creation failed\n"
+#define ERR_HOSTNAME_CANNOT_BE_RESOLVED "Provide hostname couldn`t be resolved\n"
+#define ERR_CONNECTION_FAILED "Connection failed\n"
+#define ERR_READING_DATA "Error occured while reading the data: " 
+
+#define SERVER_SIDE_MSG "Server: "
+#define CLIENT_SIDE_MSG "> " 
 
 int main(int argc, char *argv[]) {
     if(argc != 2) {
@@ -35,7 +43,7 @@ int main(int argc, char *argv[]) {
 
     char* res_buffer = calloc(MAX_RESPONSE_SIZE, sizeof(char));
     if(!res_buffer) {
-        perror("Memory allocation failed\n");
+        perror(ERR_MEM_ALLOC);
     }
 
     #ifdef SERVER_INFO_DEBUG
@@ -47,13 +55,13 @@ int main(int argc, char *argv[]) {
 
     sockfd = create_socket_descriptor();
     if (sockfd < 0) {
-        perror("Socket creation failed");
+        perror(ERR_SOCKET_CREATION);
         SSL_CTX_free(ctx);
         return 1;
     }
 
     if(resolve_hostname(argv[1], &res) != 0) {
-        perror("getaddrinfo failed\n");
+        perror(ERR_HOSTNAME_CANNOT_BE_RESOLVED);
         close(sockfd);
         SSL_CTX_free(ctx);
         return 1;
@@ -73,7 +81,7 @@ int main(int argc, char *argv[]) {
 
     // Connect to the IMAP server
     if (connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-        perror(RED "Connection failed" RESET);
+        perror(RED ERR_CONNECTION_FAILED RESET);
         close(sockfd);
         SSL_CTX_free(ctx);
         free(res_buffer);
@@ -88,11 +96,11 @@ int main(int argc, char *argv[]) {
     // Read IMAP server response
     memset(buffer, 0, sizeof(buffer));
     SSL_read(ssl, res_buffer, MAX_RESPONSE_SIZE - 1);
-    printf(GREEN "Server: %s\n" RESET, buffer);
+    printf(GREEN SERVER_SIDE_MSG "%s\n" RESET, buffer);
 
     while (1) {
         // Read input from stdin
-        printf(YELLOW "Enter command: " RESET);
+        printf(YELLOW CLIENT_SIDE_MSG RESET);
         if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
             printf("Error reading input.\n");
             break;
@@ -106,19 +114,19 @@ int main(int argc, char *argv[]) {
         int res_counter = 0;
         while(1) {
             if(res_counter == 0) {
-                strcat(tag_good, "OK");
-                strcat(tag_bad, "BAD");
+                strcat(tag_good, SERVER_RES_OK);
+                strcat(tag_bad, SERVER_RES_BAD);
                 ++res_counter;
             }
 
             int bytes_read = rec_IMAP_res(ssl, res_buffer);
             if (bytes_read <= 0) {
-                fprintf(stderr, "Error reading data: %s\n", ERR_error_string(ERR_get_error(), NULL));
+                fprintf(stderr, ERR_READING_DATA "%s\n", ERR_error_string(ERR_get_error(), NULL));
                 break;
             }
 
             res_buffer[bytes_read] = '\0';
-            printf(GREEN "Server: " RESET "%s\n", res_buffer);
+            printf(GREEN SERVER_SIDE_MSG RESET "%s\n", res_buffer);
 
             if (strstr(res_buffer, tag_good) || strstr(res_buffer, tag_bad)) {
                 break;
