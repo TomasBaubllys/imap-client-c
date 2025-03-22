@@ -1,0 +1,22 @@
+Command           | Description
+-------------------|----------------------------------------------------
+LOGIN             | Authenticate to the server
+LOGOUT            | Logout from the server
+CAPABILITY        | Query server capabilities
+SELECT            | Select a mailbox
+EXAMINE           | Open mailbox in read-only mode
+CREATE            | Create a new mailbox
+DELETE            | Delete a mailbox
+LIST              | List available mailboxes
+LSUB              | List subscribed mailboxes
+FETCH             | Fetch specific message data
+SEARCH            | Search for messages by criteria
+STORE             | Modify message flags
+COPY              | Copy messages to another folder
+MOVE              | Move messages to another folder
+EXPUNGE           | Remove deleted messages
+FLAGS             | Query message flags
+STATUS            | Get mailbox status (e.g., message count)
+APPEND            | Append a message to a mailbox (sending email)
+IDLE              | Keep connection open for real-time updates
+NOOP              | A no-operation command to keep the connection alive
