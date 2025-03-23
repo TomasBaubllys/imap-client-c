@@ -23,6 +23,7 @@ TODO :
 
 #define SERVER_SIDE_MSG "Server: "
 #define CLIENT_SIDE_MSG "> " 
+#define CONNECTED_MSG_DEBUG_IP "Connected to: %s over SSL\n"
 
 int main(int argc, char *argv[]) {
     if(argc != 2) {
@@ -38,8 +39,11 @@ int main(int argc, char *argv[]) {
     char buffer[MAX_REQ_LEN];
 
     char tag[TAG_LENGTH];  
-    char tag_good[TAG_LENGTH + RESPONSE_LENGTH_OK_BAD];
-    char tag_bad[TAG_LENGTH + RESPONSE_LENGTH_OK_BAD];
+    char tag_good[TAG_LENGTH + RESPONSE_LENGTH_MAX_TAGGED];
+    char tag_bad[TAG_LENGTH + RESPONSE_LENGTH_MAX_TAGGED];
+    char tag_preauth[TAG_LENGTH + RESPONSE_LENGTH_MAX_TAGGED];
+    char tag_no[TAG_LENGTH + RESPONSE_LENGTH_MAX_TAGGED];
+    char tag_bye[TAG_LENGTH + RESPONSE_LENGTH_MAX_TAGGED];
 
     char* res_buffer = calloc(MAX_RESPONSE_SIZE, sizeof(char));
     if(!res_buffer) {
@@ -69,7 +73,7 @@ int main(int argc, char *argv[]) {
 
     #ifdef SERVER_INFO_DEBUG
         get_host_ipv4(res, ip_str, sizeof(ip_str));
-        printf("Connecting to: %s\n", ip_str);
+        printf(CONNECTED_MSG_DEBUG_IP, ip_str);
     #endif // SERVER_INFO_DEBUG
 
     // Set up the server address
@@ -109,6 +113,12 @@ int main(int argc, char *argv[]) {
         if(send_IMAP_req(ssl, buffer, tag) <= 0) {
             break;
         }
+
+        strcpy(tag_good, tag);
+        strcpy(tag_bad, tag);
+        strcpy(tag_preauth, tag);
+        strcpy(tag_no, tag);
+        strcpy(tag_bye, tag);
  
         // Read the server's response
         int res_counter = 0;
@@ -116,6 +126,9 @@ int main(int argc, char *argv[]) {
             if(res_counter == 0) {
                 strcat(tag_good, SERVER_RES_OK);
                 strcat(tag_bad, SERVER_RES_BAD);
+                strcat(tag_preauth, SERVER_RES_PREAUTH);
+                strcat(tag_no, SERVER_RES_NO);
+                strcat(tag_bye, SERVER_RES_BYE);
                 ++res_counter;
             }
 
@@ -128,7 +141,7 @@ int main(int argc, char *argv[]) {
             res_buffer[bytes_read] = '\0';
             printf(GREEN SERVER_SIDE_MSG RESET "%s\n", res_buffer);
 
-            if (strstr(res_buffer, tag_good) || strstr(res_buffer, tag_bad)) {
+            if (strstr(res_buffer, tag_good) || strstr(res_buffer, tag_bad) || strstr(res_buffer, tag_bye) || strstr(res_buffer, tag_no) || strstr(res_buffer, tag_preauth)) {
                 break;
             }
         }
@@ -136,6 +149,9 @@ int main(int argc, char *argv[]) {
         // replace withs macros later!!
         memset(tag_good, 0, sizeof(tag_good));
         memset(tag_bad, 0, sizeof(tag_bad));
+        memset(tag_preauth, 0, sizeof(tag_preauth));
+        memset(tag_bad, 0, sizeof(tag_bad));
+        memset(tag_no, 0, sizeof(tag_no));
     }
 
     // 8. Cleanup

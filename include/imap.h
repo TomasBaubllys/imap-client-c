@@ -11,7 +11,7 @@
 #define IMAP_PORT 993
 
 #define TAG_LENGTH 24
-#define RESPONSE_LENGTH_OK_BAD 4
+#define RESPONSE_LENGTH_MAX_TAGGED 9
 #define MAX_REQ_LEN 1024
 #define MAX_REQ_USABLE_LEN 1000
 
@@ -27,6 +27,9 @@
 
 #define SERVER_RES_OK "OK"
 #define SERVER_RES_BAD "BAD"
+#define SERVER_RES_NO "NO"
+#define SERVER_RES_PREAUTH "PREAUTH"
+#define SERVER_RES_BYE "BYE"
 
 // #define IMAP_TAG_DEBUG
 // #define IMAP_FULL_REQ_PRINT
